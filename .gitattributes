@@ -1,0 +1,35 @@
+# ── HalluDet-Lite .gitattributes ──────────────────────────────────────────────
+# Normalise line endings: store LF in repo, convert to CRLF on Windows checkout.
+# This eliminates the "LF will be replaced by CRLF" warnings on Windows.
+
+*           text=auto
+
+# Force LF for files that must stay Unix-style
+*.py        text eol=lf
+*.ipynb     text eol=lf
+*.md        text eol=lf
+*.yaml      text eol=lf
+*.yml       text eol=lf
+*.json      text eol=lf
+*.txt       text eol=lf
+*.sh        text eol=lf
+*.cfg       text eol=lf
+*.toml      text eol=lf
+*.ini       text eol=lf
+
+# Binary files – never touch line endings
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.pt        binary
+*.bin       binary
+*.safetensors binary
+*.pkl       binary
+*.npy       binary
+*.faiss     binary
+*.dll       binary
+*.lib       binary
+*.exe       binary
+*.so        binary

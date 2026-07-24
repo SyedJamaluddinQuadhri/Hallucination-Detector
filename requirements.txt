@@ -1,0 +1,51 @@
+# HalluDet-Lite Requirements
+# Install: pip install -r requirements.txt
+# Python 3.11 recommended
+
+# ── Core PyTorch (CUDA 12.1 for RTX 2050) ──
+# Install separately: pip install torch==2.2.0 --index-url https://download.pytorch.org/whl/cu121
+torch==2.2.0
+torchvision==0.17.0
+
+# ── HuggingFace Stack ──
+transformers==4.40.0
+datasets==2.19.0
+accelerate==0.29.0
+tokenizers>=0.15.0
+
+# ── LoRA + DPO (Phase 5) ──
+peft==0.10.0
+trl==0.8.6
+bitsandbytes==0.43.0
+
+# ── Retrieval Stack (Phase 3) ──
+faiss-cpu==1.8.0
+sentence-transformers==2.7.0
+
+# ── NLP Utilities ──
+spacy==3.7.4
+nltk==3.8.1
+
+# ── ML / Evaluation ──
+scikit-learn==1.4.2
+evaluate==0.4.1
+netcal==1.3.5
+numpy==1.26.4
+pandas==2.2.1
+
+# ── Experiment Tracking ──
+wandb==0.22.3
+
+# ── Demo ──
+gradio==4.26.0
+
+# ── Utilities ──
+pyyaml==6.0.1
+tqdm==4.66.2
+matplotlib==3.8.4
+seaborn==0.13.2
+jupyter==1.0.0
+ipykernel==6.29.3
+
+# ── After installing, run: ──
+# python -m spacy download en_core_web_sm

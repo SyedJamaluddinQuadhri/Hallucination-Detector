@@ -1,0 +1,96 @@
+# HalluDet-Lite Master Configuration
+# Edit these values before running any phase script.
+# All paths are relative to the project root.
+
+# ── Hardware Profile ─────────────────────────────────────────────────────────
+hardware:
+  gpu_vram_gb:    4        # RTX 2050 — 4GB
+  system_ram_gb:  16
+  fp16:           true     # MUST be true for RTX 2050
+  bf16:           false    # RTX 2050 does NOT support bf16
+
+# ── Phase 1: NLI Detector ────────────────────────────────────────────────────
+phase1:
+  model_name:     "microsoft/deberta-v3-base"   # BASE not large — 4GB safe
+  output_dir:     "models/nli_detector"
+  dataset_path:   "data/processed/nli_dataset.json"
+  num_epochs:     4
+  batch_size:     8          # Safe for RTX 2050
+  grad_accum:     4          # Effective batch = 32
+  learning_rate:  0.00002
+  max_length:     256        # 256 saves 40% VRAM vs 512
+  warmup_ratio:   0.06
+  weight_decay:   0.01
+  early_stopping: 2
+  use_fever:      true
+  use_summarization: true
+
+# ── Phase 2: Uncertainty Signals ─────────────────────────────────────────────
+phase2:
+  tinyllama_model: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+  use_4bit:       true       # Required for 4GB VRAM
+  small_nli_model: "cross-encoder/nli-deberta-v3-small"
+  bart_model:     "facebook/bart-large-mnli"
+  load_bart:      true       # Runs on CPU — no VRAM impact
+
+# ── Phase 3: Knowledge Base ───────────────────────────────────────────────────
+phase3:
+  encoder_model:  "sentence-transformers/all-MiniLM-L6-v2"
+  index_path:     "data/knowledge_base/minilm_wiki.faiss"
+  chunks_path:    "data/knowledge_base/wiki_chunks.json"
+  target_articles: 100000
+  max_words_per_chunk: 150
+  overlap_words:  30
+  encoding_batch: 256
+  top_k_retrieve: 5
+  entailment_threshold: 0.55
+
+# ── Phase 4: Meta-Learner ─────────────────────────────────────────────────────
+phase4:
+  feature_dim:    8
+  hidden_dims:    [64, 32]
+  dropout:        0.3
+  n_epochs:       100
+  batch_size:     128
+  learning_rate:  0.001
+  weight_decay:   0.0001
+  model_path:     "models/meta_learner/meta_learner.pt"
+  scaler_path:    "models/meta_learner/feature_scaler.pkl"
+  platt_path:     "models/meta_learner/platt_scaler.pkl"
+  max_train_samples: 10000
+
+# ── Phase 5: DPO Fine-Tuning (Colab) ─────────────────────────────────────────
+phase5:
+  model_name:     "microsoft/phi-2"
+  adapter_path:   "models/phi2_dpo_lora/final"
+  dpo_dataset_path: "data/processed/dpo_dataset.json"
+  # Training config (used in Colab, NOT on your PC)
+  beta:           0.1
+  num_epochs:     2
+  batch_size:     4
+  grad_accum:     4
+  learning_rate:  0.0001
+  lora_r:         8
+  lora_alpha:     16
+  max_length:     512
+  max_prompt_length: 256
+
+# ── Evaluation ────────────────────────────────────────────────────────────────
+evaluation:
+  auroc_target:   0.83
+  ece_target:     0.06
+  f1_target:      0.78
+  hal_threshold:  0.5       # Claims above this are flagged
+  results_dir:    "evaluation/results"
+
+# ── Demo ──────────────────────────────────────────────────────────────────────
+demo:
+  port:           7860
+  share:          false     # Set true for hackathon public URL
+  max_claims:     10        # Max claims to analyze per response
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+logging:
+  wandb_project:  "halludet-lite"
+  log_level:      "INFO"
+  log_dir:        "logs"

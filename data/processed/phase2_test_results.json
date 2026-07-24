@@ -1,0 +1,54 @@
+[
+  {
+    "claim": "Einstein won the Nobel Prize in 1921.",
+    "label": 0,
+    "model_scores": {
+      "deberta_finetuned": 0.0002837181091308594,
+      "deberta_small": 0.9967135190963745,
+      "bart_large": 0.5
+    },
+    "mean_entailment": 0.49899907906850177,
+    "disagreement": 0.16547922563726855,
+    "ensemble_hal_score": 0.4499881800344099,
+    "n_models_used": 3
+  },
+  {
+    "claim": "Einstein won the Nobel Prize in 1935.",
+    "label": 1,
+    "model_scores": {
+      "deberta_finetuned": 0.00030422210693359375,
+      "deberta_small": 0.0019906163215637207,
+      "bart_large": 0.5
+    },
+    "mean_entailment": 0.16743161280949911,
+    "disagreement": 0.05530134006681998,
+    "ensemble_hal_score": 0.6159786750734425,
+    "n_models_used": 3
+  },
+  {
+    "claim": "The Eiffel Tower is in London.",
+    "label": 1,
+    "model_scores": {
+      "deberta_finetuned": 0.0002148151397705078,
+      "deberta_small": 0.0003235340118408203,
+      "bart_large": 0.5
+    },
+    "mean_entailment": 0.16684611638387045,
+    "disagreement": 0.05549575705422031,
+    "ensemble_hal_score": 0.6165051727638228,
+    "n_models_used": 3
+  },
+  {
+    "claim": "The Eiffel Tower was constructed in the late 1880s.",
+    "label": 0,
+    "model_scores": {
+      "deberta_finetuned": 0.0002288818359375,
+      "deberta_small": 0.97135990858078,
+      "bart_large": 0.5
+    },
+    "mean_entailment": 0.4905295968055725,
+    "disagreement": 0.15722742278608118,
+    "ensemble_hal_score": 0.45096573590774797,
+    "n_models_used": 3
+  }
+]

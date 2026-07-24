@@ -1,0 +1,120 @@
+{
+  "demo": [
+    {
+      "question": "When did Albert Einstein win the Nobel Prize?",
+      "response": "Albert Einstein won the Nobel Prize in Physics in 1921 for his discovery of the law of the photoelec...",
+      "expected": "FACTUAL",
+      "predicted": "HALLUCINATED",
+      "hal_score": 0.9800990982876336,
+      "correct": false
+    },
+    {
+      "question": "When did Albert Einstein win the Nobel Prize?",
+      "response": "Albert Einstein won the Nobel Prize in Physics in 1922 for his theory of relativity....",
+      "expected": "HALLUCINATED",
+      "predicted": "HALLUCINATED",
+      "hal_score": 0.9800991418381513,
+      "correct": true
+    },
+    {
+      "question": "Who wrote the play Hamlet?",
+      "response": "Hamlet was written by William Shakespeare, most likely around 1600–1601....",
+      "expected": "FACTUAL",
+      "predicted": "HALLUCINATED",
+      "hal_score": 0.9800993595893381,
+      "correct": false
+    },
+    {
+      "question": "Who wrote the play Hamlet?",
+      "response": "Hamlet was written by Christopher Marlowe in 1589....",
+      "expected": "HALLUCINATED",
+      "predicted": "HALLUCINATED",
+      "hal_score": 0.9800995047554993,
+      "correct": true
+    },
+    {
+      "question": "What is the capital of Australia?",
+      "response": "The capital of Australia is Canberra....",
+      "expected": "FACTUAL",
+      "predicted": "HALLUCINATED",
+      "hal_score": 0.9800993015225833,
+      "correct": false
+    },
+    {
+      "question": "What is the capital of Australia?",
+      "response": "The capital of Australia is Sydney, which is also the largest city....",
+      "expected": "HALLUCINATED",
+      "predicted": "HALLUCINATED",
+      "hal_score": 0.9800994757223501,
+      "correct": true
+    },
+    {
+      "question": "What does DNA stand for?",
+      "response": "DNA stands for Deoxyribonucleic Acid....",
+      "expected": "FACTUAL",
+      "predicted": "HALLUCINATED",
+      "hal_score": 0.9800996354041573,
+      "correct": false
+    },
+    {
+      "question": "What does DNA stand for?",
+      "response": "DNA stands for Dynamic Nucleic Assembly....",
+      "expected": "HALLUCINATED",
+      "predicted": "HALLUCINATED",
+      "hal_score": 0.9800996354041573,
+      "correct": true
+    }
+  ],
+  "ablation": {
+    "nli_only": {
+      "name": "nli_only",
+      "n_samples": 368,
+      "auroc": 0.9951865671641791,
+      "auprc": 0.9975275677803103,
+      "ece": 0.027207621737666752,
+      "f1": 0.9829222011385199,
+      "precision": 1.0,
+      "recall": 0.9664179104477612
+    },
+    "nli_ensemble": {
+      "name": "nli_ensemble",
+      "n_samples": 368,
+      "auroc": 0.9874440298507462,
+      "auprc": 0.996264337777331,
+      "ece": 0.14336008936623051,
+      "f1": 0.9809885931558935,
+      "precision": 1.0,
+      "recall": 0.9626865671641791
+    },
+    "nli_rav": {
+      "name": "nli_rav",
+      "n_samples": 368,
+      "auroc": 0.9831716417910448,
+      "auprc": 0.994651970302183,
+      "ece": 0.0830912685264711,
+      "f1": 0.979047619047619,
+      "precision": 1.0,
+      "recall": 0.9589552238805971
+    },
+    "full_ensemble": {
+      "name": "full_ensemble",
+      "n_samples": 368,
+      "auroc": 0.9891044776119403,
+      "auprc": 0.9966070997514426,
+      "ece": 0.053920692072241025,
+      "f1": 0.9793621013133208,
+      "precision": 0.9849056603773585,
+      "recall": 0.9738805970149254
+    }
+  },
+  "halueval": {
+    "name": "HaluEval Full System",
+    "n_samples": 333,
+    "auroc": 0.9972644376899696,
+    "auprc": 0.9991003855490503,
+    "ece": 0.06542388344317032,
+    "f1": 0.9894291754756871,
+    "precision": 0.9831932773109243,
+    "recall": 0.9957446808510638
+  }
+}
