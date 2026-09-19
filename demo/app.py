@@ -25,6 +25,7 @@ import numpy as np
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# pyrefly: ignore [missing-import]
 import gradio as gr
 import spacy
 
@@ -96,6 +97,16 @@ def analyze_response(question: str, response: str) -> list:
     """
     Run the full pipeline on a question + response pair.
 
+    Scoring strategy:
+      1. Extract all 8 features per claim.
+      2. Check for OOD collapse: if F0 (fine-tuned DeBERTa NLI) is near-uniform
+         for all claims (absolute value < 0.15) the model is OOD and its signal
+         is unreliable.  In that case, use the ensemble_hal_score directly
+         (cross-encoder + BART-equivalent based on M2 only when BART is off),
+         weighted with RAV support, instead of the meta-learner output.
+      3. When NLI is discriminating (in-distribution), use the full meta-learner
+         calibrated probability.
+
     Returns a list of per-claim result dicts.
     """
     if not _models_loaded:
@@ -105,23 +116,16 @@ def analyze_response(question: str, response: str) -> list:
     if not claims:
         return []
 
-    results = []
+    # ── Pass 1: collect raw features for all claims ───────────────────────────
+    raw_claim_data = []
     for claim in claims:
         try:
-            # Phase 1 — NLI
             nli_r = _nli.score_claim(question, claim)
-
-            # Phase 2a — Ensemble
             ens_r = _ens.score(question, claim)
-
-            # Phase 2b — Perplexity (TinyLLaMA on CPU for speed in demo)
             ppl_r = _ppl.score_claim(claim)
-
-            # Phase 3 — RAV
             rav_r = _rav.verify_claim(claim)
+            doc   = _nlp_sm(claim)
 
-            # Phase 4 — Meta-learner
-            doc  = _nlp_sm(claim)
             feat = np.array([
                 nli_r["probs"]["entailment"],
                 nli_r["probs"]["contradiction"],
@@ -129,38 +133,111 @@ def analyze_response(question: str, response: str) -> list:
                 ens_r["disagreement"],
                 min(ppl_r["log_perplexity"], 10.0),
                 rav_r["max_ent"],
-                max((e["retrieval_score"] for e in rav_r.get("evidence_used", [])), default=0.5),
+                max((e["retrieval_score"] for e in rav_r.get("evidence_used", [])), default=0.0),
                 float(np.log1p(len(doc.ents))),
             ], dtype=np.float32)
 
-            hal_prob = _meta.predict(feat)
-            ents     = [(e.text, e.label_) for e in doc.ents]
+            raw_claim_data.append({
+                "claim": claim,
+                "feat":  feat,
+                "nli_r": nli_r,
+                "ens_r": ens_r,
+                "ppl_r": ppl_r,
+                "rav_r": rav_r,
+                "doc":   doc,
+            })
+        except Exception as e:
+            log.warning(f"Error extracting features for '{claim[:40]}': {e}")
+            raw_claim_data.append(None)
+
+    # ── OOD detection: is the fine-tuned NLI model collapsing? ───────────────
+    # F0 (nli_entailment) should span [~0.01, ~0.99] when in-distribution.
+    # When OOD, it outputs near-zero (or near-one) for ALL claims indiscriminately.
+    # If the max F0 across claims is < 0.15, the NLI model is saturating OOD.
+    valid_feats = [d["feat"] for d in raw_claim_data if d is not None]
+    nli_in_distribution = True
+    if valid_feats:
+        max_f0 = max(f[0] for f in valid_feats)
+        min_f0 = min(f[0] for f in valid_feats)
+        # OOD when NLI entailment is uniformly low (< 0.15) for all claims
+        # This means the model can't distinguish factual from hallucinated via NLI
+        nli_in_distribution = max_f0 > 0.15
+        if not nli_in_distribution:
+            log.info(
+                f"OOD detected: max NLI entailment across claims = {max_f0:.3f} < 0.15. "
+                "Switching to ensemble-only scoring (bypasses fine-tuned DeBERTa)."
+            )
+
+    # ── Pass 2: compute final scores ─────────────────────────────────────────
+    results = []
+    for data in raw_claim_data:
+        if data is None:
+            results.append({
+                "claim":    "(processing error)",
+                "hal_prob": 0.5,
+                "verdict":  "ERROR",
+                "evidence": "Processing error",
+                "evidence_src": "",
+                "entities": [],
+            })
+            continue
+
+        claim = data["claim"]
+        feat  = data["feat"]
+        nli_r = data["nli_r"]
+        ens_r = data["ens_r"]
+        ppl_r = data["ppl_r"]
+        rav_r = data["rav_r"]
+        doc   = data["doc"]
+
+        try:
+            if nli_in_distribution:
+                # Full meta-learner path: NLI is discriminating
+                hal_prob = _meta.predict(feat)
+                score_method = "meta_learner"
+            else:
+                # Fallback path: NLI is OOD, use generalist signals only
+                # ens_hal_score uses M2 (cross-encoder, pre-trained, generalises)
+                # and M3 (BART fallback=0.5 when disabled).
+                # RAV uses FAISS + NLI over Wikipedia evidence.
+                # Weight: 60% ensemble + 40% RAV
+                ens_hal = ens_r["ensemble_hal_score"]   # already [0,1]
+                rav_hal = rav_r["rav_hal_score"]         # 1 - max_entailment
+                hal_prob = 0.6 * ens_hal + 0.4 * rav_hal
+                # Clip to valid probability range
+                hal_prob = float(min(1.0, max(0.0, hal_prob)))
+                score_method = "ensemble_fallback"
+
+            ents = [(e.text, e.label_) for e in doc.ents]
 
             results.append({
                 "claim":        claim,
                 "hal_prob":     float(hal_prob),
                 "verdict":      "HALLUCINATED" if hal_prob >= 0.5 else "SUPPORTED",
+                "score_method": score_method,
                 "nli_verdict":  nli_r["verdict"],
-                "nli_entail":   float(nli_r["probs"]["entailment"]),
+                "nli_entail":   float(feat[0]),
                 "disagreement": float(ens_r["disagreement"]),
                 "perplexity":   float(ppl_r["perplexity"]),
+                "ens_hal":      float(ens_r["ensemble_hal_score"]),
                 "rav_support":  rav_r["supported"],
                 "evidence":     rav_r.get("best_doc", "")[:200],
                 "evidence_src": rav_r.get("best_doc_title", ""),
                 "entities":     ents,
             })
         except Exception as e:
-            log.warning(f"Error analyzing claim '{claim[:40]}': {e}")
+            log.warning(f"Error scoring claim '{claim[:40]}': {e}")
             results.append({
                 "claim":    claim,
                 "hal_prob": 0.5,
                 "verdict":  "ERROR",
-                "evidence": f"Processing error: {str(e)[:100]}",
+                "evidence": f"Scoring error: {str(e)[:100]}",
                 "evidence_src": "",
                 "entities": [],
             })
 
     return results
+
 
 
 # ── HTML Rendering ────────────────────────────────────────────────────────────

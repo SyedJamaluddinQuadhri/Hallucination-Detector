@@ -131,6 +131,7 @@ def run_ablation_study(
     rav,
     meta_predictor,
     save_path: Optional[str] = None,
+    ppl=None,
 ) -> Dict:
     """
     Run an ablation study comparing each phase's contribution.
@@ -148,6 +149,9 @@ def run_ablation_study(
         rav:             Phase 3 LightweightRAV
         meta_predictor:  Phase 4 MetaLearnerPredictor
         save_path:       Where to save results JSON
+        ppl:             Optional pre-loaded TinyLLaMaPerplexity instance.
+                         Pass the shared instance to avoid loading the model
+                         a second time.
 
     Returns:
         Dict mapping config name -> metrics dict
@@ -157,7 +161,7 @@ def run_ablation_study(
     from src.phase4_ensemble.features import extract_features
 
     nlp_sm = spacy.load("en_core_web_sm")
-    ppl    = TinyLLaMaPerplexity()
+    ppl    = TinyLLaMaPerplexity() if ppl is None else ppl
 
     y_true = [r["label"] for r in test_records]
     ablation_scores = {
@@ -199,7 +203,7 @@ def run_ablation_study(
             ens_r["disagreement"],
             min(ppl_r["log_perplexity"], 10.0),
             rav_r["max_ent"],
-            max((e["retrieval_score"] for e in rav_r.get("evidence_used", [])), default=0.5),
+            max((e["retrieval_score"] for e in rav_r.get("evidence_used", [])), default=0.0),
             float(np.log1p(len(doc.ents))),
         ], dtype=np.float32)
         full_score = meta_predictor.predict(feat)

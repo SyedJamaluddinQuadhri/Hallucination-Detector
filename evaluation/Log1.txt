@@ -1,0 +1,194 @@
+(halludet_env) E:\HalluDet\Hallu_Detect>python scripts/run_all_eval.py
+[19:33:22] INFO halludet — Environment configured for RTX 2050
+[19:33:22] INFO script.eval — ============================================================
+[19:33:22] INFO script.eval — HalluDet-Lite — Full Evaluation Suite
+[19:33:22] INFO script.eval — ============================================================
+[19:33:22] INFO script.eval — Loading pipeline models...
+[19:34:03] INFO nli.predict — Loading NLI model from E:\HalluDet\Hallu_Detect\models\nli_detector\best on cpu
+Loading weights: 100%|█████████████████████| 202/202 [00:00<00:00, 823.16it/s, Materializing param=pooler.dense.weight]
+[19:34:05] INFO nli.predict — NLI model loaded. VRAM used: 0.00GB
+[19:34:05] INFO uncertainty.ensemble — Loading cross-encoder/nli-deberta-v3-small on GPU...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights: 100%|█████████████████████| 106/106 [00:00<00:00, 872.14it/s, Materializing param=pooler.dense.weight]
+DebertaV2ForSequenceClassification LOAD REPORT from: cross-encoder/nli-deberta-v3-small
+Key                             | Status     |  |
+--------------------------------+------------+--+-
+deberta.embeddings.position_ids | UNEXPECTED |  |
+
+Notes:
+- UNEXPECTED    :can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+[19:34:10] INFO uncertainty.ensemble — Model 2 (small cross-encoder) loaded.
+[19:34:10] INFO uncertainty.ensemble — Loading facebook/bart-large-mnli on CPU...
+Loading weights: 100%|█████████████████████| 515/515 [00:00<00:00, 867.47it/s, Materializing param=model.shared.weight]
+[19:34:13] INFO uncertainty.ensemble — Model 3 (BART-large NLI) loaded on CPU.
+[19:34:13] INFO uncertainty.ensemble — Ensemble ready: 3/3 models loaded.
+[19:34:13] INFO rav.retriever — Loading FAISS index from E:\HalluDet\Hallu_Detect\data\knowledge_base\minilm_wiki.faiss...
+[19:34:14] INFO rav.retriever — FAISS index loaded: 446,061 vectors
+[19:34:14] INFO rav.retriever — Loading chunks metadata from E:\HalluDet\Hallu_Detect\data\knowledge_base\wiki_chunks.json...
+[19:34:17] INFO rav.retriever — Chunks loaded: 446,061
+[19:34:17] INFO rav.retriever — Loading query encoder: sentence-transformers/all-MiniLM-L6-v2 (CPU)
+Loading weights: 100%|█████████████████████| 103/103 [00:00<00:00, 990.42it/s, Materializing param=pooler.dense.weight]
+BertModel LOAD REPORT from: sentence-transformers/all-MiniLM-L6-v2
+Key                     | Status     |  |
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  |
+
+Notes:
+- UNEXPECTED    :can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+[19:34:24] INFO rav.retriever — LightweightRAV ready.
+C:\Users\syedj\AppData\Roaming\Python\Python313\site-packages\sklearn\base.py:442: InconsistentVersionWarning: Trying to unpickle estimator StandardScaler from version 1.4.2 when using version 1.7.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+  warnings.warn(
+C:\Users\syedj\AppData\Roaming\Python\Python313\site-packages\sklearn\base.py:442: InconsistentVersionWarning: Trying to unpickle estimator LogisticRegression from version 1.4.2 when using version 1.7.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+  warnings.warn(
+[19:34:24] INFO ensemble.meta_learner — MetaLearnerPredictor loaded.
+[19:34:24] INFO script.eval — Loading TinyLLaMA perplexity model (shared instance)...
+[19:34:24] INFO uncertainty.perplexity — Loading TinyLLaMA on cpu (4bit=True)...
+[19:34:24] WARNING uncertainty.perplexity — Ensure NLI model is on CPU before loading this!
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights: 100%|███████████████████████| 201/201 [00:01<00:00, 138.54it/s, Materializing param=model.norm.weight]
+[19:34:31] INFO uncertainty.perplexity — TinyLLaMA loaded. VRAM: 0.00GB
+[19:34:32] INFO script.eval —
+--- Running Demo Test Cases ---
+[19:34:33] INFO evaluation.benchmarks — Running demo test cases...
+[19:34:33] INFO claim_splitter — Loading spaCy model: en_core_web_sm
+[19:34:34] INFO claim_splitter — ClaimSplitter ready
+[19:34:42] INFO evaluation.benchmarks — ✓ Q: When did Albert Einstein win the Nobel P... Score=0.450 Expected=FACTUAL
+[19:34:48] INFO evaluation.benchmarks — ✓ Q: When did Albert Einstein win the Nobel P... Score=0.614 Expected=HALLUCINATED
+[19:34:54] INFO evaluation.benchmarks — ✓ Q: Who wrote the play Hamlet?... Score=0.450 Expected=FACTUAL
+[19:34:59] INFO evaluation.benchmarks — ✓ Q: Who wrote the play Hamlet?... Score=0.616 Expected=HALLUCINATED
+[19:35:04] INFO evaluation.benchmarks — ✓ Q: What is the capital of Australia?... Score=0.178 Expected=FACTUAL
+[19:35:10] INFO evaluation.benchmarks — ✓ Q: What is the capital of Australia?... Score=0.615 Expected=HALLUCINATED
+[19:35:15] INFO evaluation.benchmarks — ✓ Q: What does DNA stand for?... Score=0.188 Expected=FACTUAL
+[19:35:20] INFO evaluation.benchmarks — ✓ Q: What does DNA stand for?... Score=0.615 Expected=HALLUCINATED
+[19:35:20] INFO evaluation.benchmarks —
+Demo accuracy: 8/8
+[19:35:20] INFO script.eval — Demo accuracy: 100.0%
+[19:35:20] INFO script.eval —
+--- Building ablation test set ---
+[19:35:28] INFO script.eval — Ablation test records: 368
+[19:35:28] INFO script.eval —
+--- Running Ablation Study ---
+[19:35:29] INFO evaluation.metrics — Running ablation on 368 test records...
+[19:35:35] INFO evaluation.metrics —   Ablation progress: 0/368
+[19:44:24] INFO evaluation.metrics —   Ablation progress: 100/368
+[19:53:11] INFO evaluation.metrics —   Ablation progress: 200/368
+[20:01:51] INFO evaluation.metrics —   Ablation progress: 300/368
+[20:07:50] INFO evaluation.metrics —
+=======================================================
+[20:07:50] INFO evaluation.metrics — Evaluation: nli_only
+[20:07:50] INFO evaluation.metrics —   AUROC:     0.9941  (target > 0.83)
+[20:07:50] INFO evaluation.metrics —   AUPRC:     0.9982
+[20:07:50] INFO evaluation.metrics —   ECE:       0.0273   (target < 0.06)
+[20:07:50] INFO evaluation.metrics —   F1:        0.9829
+[20:07:50] INFO evaluation.metrics —   Precision: 1.0000
+[20:07:50] INFO evaluation.metrics —   Recall:    0.9664
+[20:07:50] INFO evaluation.metrics — =======================================================
+
+[20:07:50] INFO evaluation.metrics —               precision    recall  f1-score   support
+
+     Factual       0.92      1.00      0.96       100
+Hallucinated       1.00      0.97      0.98       268
+
+    accuracy                           0.98       368
+   macro avg       0.96      0.98      0.97       368
+weighted avg       0.98      0.98      0.98       368
+
+[20:07:50] INFO evaluation.metrics —
+=======================================================
+[20:07:50] INFO evaluation.metrics — Evaluation: nli_ensemble
+[20:07:50] INFO evaluation.metrics —   AUROC:     0.9873  (target > 0.83)
+[20:07:50] INFO evaluation.metrics —   AUPRC:     0.9963
+[20:07:50] INFO evaluation.metrics —   ECE:       0.1435   (target < 0.06)
+[20:07:50] INFO evaluation.metrics —   F1:        0.9810
+[20:07:50] INFO evaluation.metrics —   Precision: 1.0000
+[20:07:50] INFO evaluation.metrics —   Recall:    0.9627
+[20:07:50] INFO evaluation.metrics — =======================================================
+
+[20:07:50] INFO evaluation.metrics —               precision    recall  f1-score   support
+
+     Factual       0.91      1.00      0.95       100
+Hallucinated       1.00      0.96      0.98       268
+
+    accuracy                           0.97       368
+   macro avg       0.95      0.98      0.97       368
+weighted avg       0.98      0.97      0.97       368
+
+[20:07:50] INFO evaluation.metrics —
+=======================================================
+[20:07:50] INFO evaluation.metrics — Evaluation: nli_rav
+[20:07:50] INFO evaluation.metrics —   AUROC:     0.9832  (target > 0.83)
+[20:07:50] INFO evaluation.metrics —   AUPRC:     0.9947
+[20:07:50] INFO evaluation.metrics —   ECE:       0.0829   (target < 0.06)
+[20:07:50] INFO evaluation.metrics —   F1:        0.9790
+[20:07:50] INFO evaluation.metrics —   Precision: 1.0000
+[20:07:50] INFO evaluation.metrics —   Recall:    0.9590
+[20:07:50] INFO evaluation.metrics — =======================================================
+
+[20:07:50] INFO evaluation.metrics —               precision    recall  f1-score   support
+
+     Factual       0.90      1.00      0.95       100
+Hallucinated       1.00      0.96      0.98       268
+
+    accuracy                           0.97       368
+   macro avg       0.95      0.98      0.96       368
+weighted avg       0.97      0.97      0.97       368
+
+[20:07:50] INFO evaluation.metrics —
+=======================================================
+[20:07:50] INFO evaluation.metrics — Evaluation: full_ensemble
+[20:07:50] INFO evaluation.metrics —   AUROC:     0.9863  (target > 0.83)
+[20:07:50] INFO evaluation.metrics —   AUPRC:     0.9958
+[20:07:50] INFO evaluation.metrics —   ECE:       0.0979   (target < 0.06)
+[20:07:50] INFO evaluation.metrics —   F1:        0.9647
+[20:07:50] INFO evaluation.metrics —   Precision: 0.9594
+[20:07:50] INFO evaluation.metrics —   Recall:    0.9701
+[20:07:50] INFO evaluation.metrics — =======================================================
+
+[20:07:50] INFO evaluation.metrics —               precision    recall  f1-score   support
+
+     Factual       0.92      0.89      0.90       100
+Hallucinated       0.96      0.97      0.96       268
+
+    accuracy                           0.95       368
+   macro avg       0.94      0.93      0.93       368
+weighted avg       0.95      0.95      0.95       368
+
+[20:07:50] INFO evaluation.metrics —
+============================================================
+[20:07:50] INFO evaluation.metrics — Config                    AUROC       F1      ECE
+[20:07:50] INFO evaluation.metrics — ------------------------------------------------------------
+[20:07:50] INFO evaluation.metrics — nli_only                 0.9941   0.9829   0.0273
+[20:07:50] INFO evaluation.metrics — nli_ensemble             0.9873   0.9810   0.1435
+[20:07:50] INFO evaluation.metrics — nli_rav                  0.9832   0.9790   0.0829
+[20:07:50] INFO evaluation.metrics — full_ensemble            0.9863   0.9647   0.0979
+[20:07:50] INFO evaluation.metrics — ============================================================
+[20:07:50] INFO evaluation.metrics — Ablation results saved to E:\HalluDet\Hallu_Detect\evaluation\results\ablation_results.json
+[20:07:50] INFO script.eval —
+--- HaluEval Benchmark ---
+[20:07:50] INFO evaluation.benchmarks — Loading HaluEval for benchmark (max 500 samples)...
+[20:07:55] INFO evaluation.benchmarks — Evaluating on 500 HaluEval samples...
+[20:08:00] INFO evaluation.benchmarks —   Evaluated 0/500
+[20:15:14] INFO evaluation.benchmarks —   Evaluated 100/500
+[20:21:04] INFO evaluation.benchmarks —   Evaluated 200/500
+[20:26:11] INFO evaluation.benchmarks —   Evaluated 300/500
+[20:33:46] INFO evaluation.metrics —
+=======================================================
+[20:33:46] INFO evaluation.metrics — Evaluation: HaluEval Full System
+[20:33:46] INFO evaluation.metrics —   AUROC:     0.9960  (target > 0.83)
+[20:33:46] INFO evaluation.metrics —   AUPRC:     0.9988
+[20:33:46] INFO evaluation.metrics —   ECE:       0.1096   (target < 0.06)
+[20:33:46] INFO evaluation.metrics —   F1:        0.9750
+[20:33:46] INFO evaluation.metrics —   Precision: 0.9551
+[20:33:46] INFO evaluation.metrics —   Recall:    0.9957
+[20:33:46] INFO evaluation.metrics — =======================================================
+
+[20:33:46] INFO evaluation.metrics —               precision    recall  f1-score   support
+
+     Factual       0.99      0.89      0.94        98
+Hallucinated       0.96      1.00      0.97       235
+
+    accuracy                           0.96       333
+   macro avg       0.97      0.94      0.96       333
+weighted avg       0.96      0.96      0.96       333d

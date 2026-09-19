@@ -17,6 +17,9 @@ Usage:
 import argparse
 import sys
 import os
+# TIP: Set HF_TOKEN in your environment to avoid unauthenticated HuggingFace
+# requests and their lower rate limits:
+#   $env:HF_TOKEN = "hf_your_token_here"
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import json
@@ -87,10 +90,15 @@ def main():
     rav   = LightweightRAV(nli_predictor=nli)
     meta  = MetaLearnerPredictor()
 
+    # ── Load TinyLLaMA once (shared across all benchmarks) ───────────────────
+    log.info("Loading TinyLLaMA perplexity model (shared instance)...")
+    from src.phase2_uncertainty.perplexity import TinyLLaMaPerplexity
+    ppl = TinyLLaMaPerplexity()
+
     # ── Demo cases ────────────────────────────────────────────────────────────
     log.info("\n--- Running Demo Test Cases ---")
     from evaluation.benchmarks import run_demo_tests
-    demo_results = run_demo_tests(nli, ens, rav, meta)
+    demo_results = run_demo_tests(nli, ens, rav, meta, ppl=ppl)
     all_results["demo"] = demo_results
     demo_acc = sum(1 for r in demo_results if r["correct"]) / len(demo_results)
     log.info(f"Demo accuracy: {demo_acc:.1%}")
@@ -134,6 +142,7 @@ def main():
         rav=rav,
         meta_predictor=meta,
         save_path=str(root / "evaluation" / "results" / "ablation_results.json"),
+        ppl=ppl,
     )
     all_results["ablation"] = ablation_results
 
@@ -146,6 +155,7 @@ def main():
         rav=rav,
         meta_predictor=meta,
         max_samples=args.max_samples,
+        ppl=ppl,
     )
     all_results["halueval"] = halueval_results
 

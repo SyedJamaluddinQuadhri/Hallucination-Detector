@@ -64,6 +64,8 @@ class TinyLLaMaPerplexity:
         log.warning("Ensure NLI model is on CPU before loading this!")
 
         try:
+            import gc
+            gc.collect()
             if use_4bit and device == "cuda":
                 bnb_config = BitsAndBytesConfig(
                     load_in_4bit=True,
@@ -77,19 +79,19 @@ class TinyLLaMaPerplexity:
                     device_map={"": 0},
                 )
             else:
-                dtype = torch.float32
                 self.model = AutoModelForCausalLM.from_pretrained(
                     self.MODEL_ID,
-                    torch_dtype=dtype,
+                    torch_dtype=torch.float16,
+                    low_cpu_mem_usage=True,
                 )
                 if device != "cpu":
                     self.model = self.model.to(device)
             self.model.eval()
             self.tokenizer = AutoTokenizer.from_pretrained(self.MODEL_ID)
             self.tokenizer.pad_token = self.tokenizer.eos_token
-        except OSError as e:
-            if "1455" in str(e) or "paging file" in str(e):
-                log.error(f"Failed to load TinyLLaMA due to Windows Paging file limits! Gracefully degrading Perplexity features. Details: {e}")
+        except (OSError, MemoryError, RuntimeError) as e:
+            if "1455" in str(e) or "paging file" in str(e) or "out of memory" in str(e).lower() or isinstance(e, MemoryError):
+                log.error(f"Failed to load TinyLLaMA due to memory/paging limits! Gracefully degrading Perplexity features. Details: {e}")
                 self.model = None
                 self.tokenizer = None
             else:
